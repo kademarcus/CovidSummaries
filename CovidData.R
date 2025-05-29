@@ -143,9 +143,5 @@ ggplot(covid_cumulative, aes(x = date, y = cumulative_cases, color = continent))
   ) +
   theme_minimal() 
 
-
-
-
-
-str(covid_cumulative$date)
+rm(covid_cumulative)
 #---------------------Correlations and Tests---------------------------------------------

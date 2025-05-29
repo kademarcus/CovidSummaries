@@ -27,7 +27,7 @@ covid <- read.csv("https://github.com/owid/covid-19-data/raw/master/public/data/
 
 View(covid)
 
-#cleaning 
+#-------------------------Cleaning--------------------------------------------------
 covid <- covid %>%
   filter(!is.na(continent))%>% #going to summarize by continent 
   mutate(
@@ -53,7 +53,7 @@ covid <- covid %>%
                                          "Pre-Vaccine", "Post-Vaccine")) #before and after vaccine introduced
 
 
-#---------------------Summaries and tables---------------------------------------------
+#---------------------Summaries and Tables---------------------------------------------
 #view raw summary
 summary_table <- covid %>%
   group_by(continent, vaccine_period) %>% #pre and post, and continent variables

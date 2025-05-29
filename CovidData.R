@@ -100,7 +100,32 @@ rm(summary_table, formatted_covid_table)
 
 
 #---------------------Graphs and Maps---------------------------------------------
+#plot new cases over time with ggplot2
+#get data for continents
+covid_cumulative <- covid %>%
+  filter(!is.na(continent)) %>%
+  filter(continent != "") %>%
+  group_by(continent, date) %>%
+  summarise(daily_cases = sum(new_cases, na.rm = TRUE), .groups = "drop") %>%
+  arrange(continent, date) %>%
+  group_by(continent) %>%
+  mutate(cumulative_cases = cumsum(daily_cases)) %>%
+  ungroup() %>%
+  mutate(date = as.Date(date))  # ensure date is Date class
 
+ggplot(covid_cumulative, aes(x = date, y = cumulative_cases, color = continent)) +
+  geom_line(linewidth = 1) +
+  scale_x_date(date_labels = "%Y", date_breaks = "1 year") +
+  labs(
+    title = "Cumulative COVID-19 Cases by Continent",
+    x = "Year",
+    y = "Cumulative Reported Cases",
+    color = "Continent"
+  ) +
+  theme_minimal()
+
+
+rm(covid_cumulative)
 
 
 #---------------------Correlations---------------------------------------------

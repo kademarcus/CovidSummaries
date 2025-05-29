@@ -9,6 +9,7 @@ install.packages("lubridate")
 install.packages("ggplot2")
 install.packages("tidyr")
 install.packages("gt")
+install.packages("webshot2")
 
 #libraries
 library(tidyverse)
@@ -19,6 +20,7 @@ library(lubridate)
 library(ggplot2)
 library(tidyr)
 library(gt)
+library(webshot2)
 
 #bring in data
 covid <- read.csv("https://github.com/owid/covid-19-data/raw/master/public/data/owid-covid-data.csv")
@@ -28,9 +30,28 @@ View(covid)
 #cleaning 
 covid <- covid %>%
   filter(!is.na(continent))%>% #going to summarize by continent 
+  mutate(
+    continent = case_when(
+      iso_code == "OWID_WRL" ~ "World",
+      iso_code == "OWID_EUR" ~ "Europe",
+      iso_code == "OWID_AFR" ~ "Africa",
+      iso_code == "OWID_ASI" ~ "Asia",
+      iso_code == "OWID_NAM" ~ "North America",
+      iso_code == "OWID_SAM" ~ "South America",
+      iso_code == "OWID_OCE" ~ "Oceania",
+      TRUE ~ continent  # leave others unchanged
+    )
+  )%>% #some continent values were blank, but have iso codes
+  filter(iso_code != "OWID_EUN",
+         iso_code != "OWID_HIC",
+         iso_code != "OWID_LIC",
+         iso_code != "OWID_LMC", 
+         iso_code != "OWID_HMC", 
+         iso_code != "OWID_UMC")%>% #only want regional continents
   dplyr::mutate(date = as.Date(date)) %>% #make sure date is correct format
   dplyr::mutate(vaccine_period = if_else(date < as.Date("2021-01-01"), 
                                          "Pre-Vaccine", "Post-Vaccine")) #before and after vaccine introduced
+
 
 #---------------------Summaries and tables---------------------------------------------
 #view raw summary
@@ -43,9 +64,7 @@ summary_table <- covid %>%
     avg_new_deaths = mean(new_deaths, na.rm = TRUE) #average new deaths over pre and post time
   ) %>%
   dplyr::mutate(vaccine_period = factor(vaccine_period, levels = c("Pre-Vaccine", "Post-Vaccine")))%>%
-  ungroup() %>%
-  dplyr::mutate(continent = ifelse(continent == "" | is.na(continent), "World", continent)) #replace blank with World total
-
+  ungroup() 
 
 
 #cleaned up table
@@ -95,7 +114,7 @@ formatted_covid_table <- tab_source_note(
 # Display
 formatted_covid_table
 
-
+gtsave(formatted_covid_table, "covid_table.png")
 rm(summary_table, formatted_covid_table) 
 
 
@@ -122,10 +141,11 @@ ggplot(covid_cumulative, aes(x = date, y = cumulative_cases, color = continent))
     y = "Cumulative Reported Cases",
     color = "Continent"
   ) +
-  theme_minimal()
+  theme_minimal() 
 
 
-rm(covid_cumulative)
 
 
-#---------------------Correlations---------------------------------------------
+
+str(covid_cumulative$date)
+#---------------------Correlations and Tests---------------------------------------------
